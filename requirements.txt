@@ -1,0 +1,11 @@
+# NetBox NSO Services Plugin Requirements
+
+# NetBox core dependency
+# This plugin is designed to work with NetBox 3.x or later
+netbox>=3.0.0
+
+# Core dependencies (typically included with NetBox)
+Django>=4.0
+djangorestframework>=3.14
+django-tables2>=2.4
+django-filter>=22.1
