@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Instance Details</title>
+</head>
+<body>
+    <h1>Service Instance: {{ instance.name }}</h1>
+    <p><strong>Service Name:</strong> {{ instance.service.name }}</p>
+    <p><strong>Description:</strong> {{ instance.description }}</p>
+    <p><strong>Allocated Devices:</strong></p>
+    <ul>
+        {% for device in instance.devices.all %}
+            <li>{{ device.name }}</li>
+        {% empty %}
+            <li>No devices allocated.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'nso_services:service_instance_edit' instance.id %}">Edit Instance</a>
+    <a href="{% url 'nso_services:service_instance_list' %}">Back to Instances</a>
+</body>
+</html>

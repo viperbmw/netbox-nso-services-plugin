@@ -1,0 +1,125 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+
+{% block content %}
+<div class="row">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">NSO Service Instance</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Service</th>
+                        <td><a href="{% url 'plugins:nso_services:nsoservice' pk=object.service.pk %}">{{ object.service.name }}</a></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>{% badge object.get_status_display object.get_status_color %}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Region</th>
+                        <td>{{ object.region|linkify|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% if object.json_body %}
+        <div class="card">
+            <h5 class="card-header">Deployed JSON Body</h5>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded" style="font-family: monospace; font-size: 0.9em; overflow-x: auto;"><code>{{ object.json_body|json }}</code></pre>
+            </div>
+        </div>
+        {% endif %}
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Device Roles</h5>
+            <div class="card-body">
+                {% if object.device_roles.exists %}
+                <ul class="list-unstyled mb-0">
+                    {% for role in object.device_roles.all %}
+                    <li><a href="{% url 'dcim:devicerole' pk=role.pk %}">{{ role.name }}</a></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <span class="text-muted">No device roles assigned</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-header">Devices</h5>
+            <div class="card-body">
+                {% if object.devices.exists or object.device_roles.exists %}
+                {# Check for overlapping devices #}
+                {% with direct_device_ids=object.devices.values_list|dictsort:"id" %}
+                {% with overlapping_devices=list %}
+                    {% for role in object.device_roles.all %}
+                        {% for device in role.devices.all %}
+                            {% if device in object.devices.all %}
+                                {% if device not in overlapping_devices %}
+                                    {{ overlapping_devices.append|default:'' }}
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% if overlapping_devices %}
+                    <div class="alert alert-warning mb-3" role="alert">
+                        <strong>Warning:</strong> Some devices are assigned both directly and via device role. They will appear in both categories below.
+                    </div>
+                    {% endif %}
+                {% endwith %}
+                {% endwith %}
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Device</th>
+                            <th>Assignment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for device in object.devices.all %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'dcim:device' pk=device.pk %}">{{ device.name }}</a>
+                                {# Check if this device also appears via role #}
+                                {% for role in object.device_roles.all %}
+                                    {% if device in role.devices.all %}
+                                        <span class="badge bg-warning text-dark ms-2">⚠ Also in {{ role.name }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td><span class="badge bg-warning text-dark">Direct</span></td>
+                        </tr>
+                        {% endfor %}
+                        {% for role in object.device_roles.all %}
+                            {% for device in role.devices.all %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'dcim:device' pk=device.pk %}">{{ device.name }}</a>
+                                    {# Check if this device is also directly assigned #}
+                                    {% if device in object.devices.all %}
+                                        <span class="badge bg-warning text-dark ms-2">⚠ Also Direct</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-info text-dark">via {{ role.name }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <span class="text-muted">No devices assigned</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

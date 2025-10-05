@@ -1,0 +1,33 @@
+<h1>{{ service.name }}</h1>
+
+<p><strong>Description:</strong> {{ service.description }}</p>
+
+<h2>Instances</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Instance Name</th>
+            <th>Allocated Devices</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for instance in service.instances.all %}
+        <tr>
+            <td>{{ instance.name }}</td>
+            <td>
+                {% if instance.devices.count > 0 %}
+                <ul>
+                    {% for device in instance.devices.all %}
+                    <li>{{ device.name }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                No devices allocated
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="{% url 'nso_services:service_instance_create' service.id %}">Add Instance</a>

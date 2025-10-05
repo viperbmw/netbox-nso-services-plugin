@@ -1,0 +1,22 @@
+{% extends 'base/layout.html' %}
+{% load form_helpers %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            {% csrf_token %}
+            <div class="card">
+                <h5 class="card-header">Allocate NSO Service Instance</h5>
+                <div class="card-body">
+                    {% render_form form %}
+                </div>
+            </div>
+            <div class="text-end my-3">
+                <button type="submit" class="btn btn-primary">Allocate</button>
+                <a href="{% if device_id %}{% url 'dcim:device' pk=device_id %}{% elif device_role_id %}{% url 'dcim:devicerole' pk=device_role_id %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'generic/object.html' %}
+{% load helpers %}
+{% load nso_extras %}
+
+{% block content %}
+<div class="row">
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">NSO Service</h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <th scope="row">Name</th>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Status</th>
+                        <td>{% badge object.get_status_display object.get_status_color %}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Region</th>
+                        <td>{{ object.region|linkify|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Git Repository</th>
+                        <td>
+                            {% if object.git_repo_url %}
+                                <a href="{{ object.git_repo_url }}" target="_blank">{{ object.git_repo_url }}</a>
+                            {% else %}
+                                <span class="text-muted">&mdash;</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Description</th>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% if object.json_body %}
+        <div class="card">
+            <h5 class="card-header">Example JSON Body</h5>
+            <div class="card-body">
+                <pre class="bg-dark text-light p-3 rounded" style="font-family: monospace; font-size: 0.9em; overflow-x: auto;"><code>{{ object.json_body|json }}</code></pre>
+            </div>
+        </div>
+        {% endif %}
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <h5 class="card-header">Service Instances</h5>
+            <div class="card-body">
+                {% if object.nso_instances.exists %}
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Device Roles</th>
+                            <th>Direct Devices</th>
+                            <th>Total Devices</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instance in object.nso_instances.all %}
+                        <tr>
+                            <td><a href="{% url 'plugins:nso_services:nsoserviceinstance' pk=instance.pk %}">{{ instance.name }}</a></td>
+                            <td>
+                                {{ instance.device_roles.count }}
+                                {% if instance.device_roles.count > 0 %}
+                                    <span class="text-muted">({{ instance|role_device_count }} devices)</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ instance.devices.count }}</td>
+                            <td>{{ instance|total_device_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <span class="text-muted">No instances</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

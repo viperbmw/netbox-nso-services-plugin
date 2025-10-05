@@ -1,0 +1,44 @@
+{% load helpers %}
+
+<div class="card">
+    <h5 class="card-header">
+        NSO Service Instances
+        <div class="card-actions">
+            <a href="{% url 'plugins:nso_services:nsoserviceinstance_allocate' %}?device={{ object.pk }}" class="btn btn-ghost-primary btn-sm">
+                <i class="mdi mdi-plus-thick" aria-hidden="true"></i> Allocate NSO Service Instance
+            </a>
+        </div>
+    </h5>
+    <div class="card-body">
+        {% if service_instances %}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Instance</th>
+                    <th>Region</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for instance in service_instances %}
+                <tr>
+                    <td>
+                        <a href="{% url 'plugins:nso_services:nsoservice' pk=instance.service.pk %}">
+                            {{ instance.service.name }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'plugins:nso_services:nsoserviceinstance' pk=instance.pk %}">
+                            {{ instance.name }}
+                        </a>
+                    </td>
+                    <td>{{ instance.service.region|linkify|placeholder }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <span class="text-muted">No NSO service instances assigned</span>
+        {% endif %}
+    </div>
+</div>
