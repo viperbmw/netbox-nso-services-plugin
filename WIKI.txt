@@ -1,0 +1,222 @@
+Stakeholders
+Objectives
+Useful Links
+High Level Design
+Low Level Design
+Plugin Architecture
+Data Models
+NSO Service - Required Fields
+NSO Service Instance - Required Fields
+API Endpoints
+Installation Guide
+Usage Guide
+
+
+Stakeholders
+RACI - Responsible, Accountable, Consulted, Informed
+
+Name	Role	Notes
+cwd	RA	NetBox NSO Services Plugin - Development and Maintenance
+
+
+Objectives
+Why - To track and manage Cisco NSO (Network Services Orchestrator) services and their instances within NetBox
+How - Use a custom NetBox plugin to extend the platform with NSO service tracking capabilities
+What - Make NetBox the source of truth for NSO services, their instances, and device associations
+
+
+Useful Links
+GitHub Repository: https://github.com/viperbmw/netbox-nso-services-plugin
+NetBox Plugin Documentation: https://docs.netbox.dev/en/stable/plugins/
+Cisco NSO Documentation: https://www.cisco.com/c/en/us/products/cloud-systems-management/network-services-orchestrator/index.html
+
+
+High Level Design
+NSO Services Plugin - A NetBox plugin that provides comprehensive tracking and management of Cisco NSO services.
+
+The plugin extends NetBox's core functionality by adding:
+- Custom database models for NSO services and service instances
+- REST API endpoints for programmatic access
+- UI views and forms for service management
+- Device API extensions to show associated service instances
+- Device detail page tabs showing NSO service relationships
+
+
+Low Level Design
+
+Plugin Architecture
+
+The plugin follows NetBox's standard plugin architecture:
+- Models: Django models extending NetBox's PrimaryModel
+- Views: Django views using NetBox's generic view classes
+- API: REST API using Django REST Framework serializers and viewsets
+- Templates: Jinja2 templates extending NetBox's base templates
+- Forms: Django forms using NetBox's form utilities
+
+
+Data Models
+
+NSO Service
+Represents a service template or service type in NSO. Each service can have multiple instances deployed across different devices or regions.
+
+NSO Service Instance
+Represents a deployed instance of an NSO service. Service instances are associated with specific devices or device roles and contain instance-specific configuration data.
+
+
+NSO Service - Required Fields
+
+Field	Data/Description
+Name	Unique identifier for the NSO service (e.g., "L3VPN", "Firewall-Config")
+Description	Optional detailed description of what the service does
+Status	Current status of the service (Active, Planned, Staged, Decommissioning, Retired)
+Region	The NetBox region where this service is available (optional)
+Git Repository URL	Link to the Git repository containing the service package code
+JSON Body	Service-level configuration data stored as JSON
+
+
+NSO Service Instance - Required Fields
+
+Field	Data/Description
+Service	Foreign key reference to the parent NSO Service
+Name	Instance identifier (e.g., "customer-abc-l3vpn")
+Status	Current status of the instance (Active, Planned, Staged, Decommissioning, Retired)
+Region	The NetBox region where this instance is deployed (optional)
+Devices	Many-to-many relationship to specific NetBox devices using this instance
+Device Roles	Many-to-many relationship to device roles that should use this instance
+JSON Body	Instance-specific configuration data stored as JSON
+
+
+API Endpoints
+
+Base URL: /api/plugins/nso-services/
+
+Endpoint	Method	Description
+/services/	GET	List all NSO services
+/services/	POST	Create a new NSO service
+/services/{id}/	GET	Retrieve a specific service
+/services/{id}/	PATCH	Update a service
+/services/{id}/	DELETE	Delete a service
+/instances/	GET	List all service instances
+/instances/	POST	Create a new service instance
+/instances/{id}/	GET	Retrieve a specific instance
+/instances/{id}/	PATCH	Update an instance
+/instances/{id}/	DELETE	Delete an instance
+
+Device API Extension:
+The plugin automatically extends /api/dcim/devices/{id}/ responses to include an "nso_service_instances" field containing all service instances associated with that device.
+
+
+Installation Guide
+
+Requirements:
+- NetBox 3.x or later
+- Python 3.8+
+- Git (for installation from repository)
+
+Installation Steps:
+
+1. Install the plugin:
+   pip install git+https://github.com/viperbmw/netbox-nso-services-plugin.git
+
+2. Add to NetBox configuration.py:
+   PLUGINS = [
+       'nso_services',
+   ]
+
+3. Run database migrations:
+   python manage.py migrate
+
+4. Restart NetBox services:
+   systemctl restart netbox netbox-rq
+
+5. Verify installation:
+   Navigate to Plugins menu in NetBox UI
+   Confirm "NSO Services" appears in the menu
+
+
+Usage Guide
+
+Creating an NSO Service:
+
+1. Navigate to Plugins > NSO Services in the NetBox UI
+2. Click the "Add" button to create a new service
+3. Fill in required fields:
+   - Name: Unique service name
+   - Description: Optional service description
+   - Status: Select appropriate status (typically "Active")
+   - Region: Select region if applicable
+   - Git Repository URL: Link to service package repository
+   - JSON Body: Add service-level configuration as JSON
+4. Click "Create" to save the service
+
+
+Creating a Service Instance:
+
+1. Navigate to an NSO Service detail page
+2. Click "Add Instance" or go to Plugins > NSO Service Instances
+3. Fill in required fields:
+   - Service: Select the parent service
+   - Name: Unique instance name
+   - Status: Select appropriate status
+   - Region: Select deployment region
+   - Devices: Select specific devices (optional)
+   - Device Roles: Select device roles (optional)
+   - JSON Body: Add instance-specific configuration
+4. Click "Create" to save the instance
+
+
+Viewing Service Instances on Devices:
+
+1. Navigate to a Device detail page in DCIM
+2. Look for the "NSO Services" tab
+3. The tab displays all service instances associated with:
+   - The specific device directly
+   - The device's role
+
+
+Using the API:
+
+List all services:
+curl -X GET https://netbox.example.com/api/plugins/nso-services/services/ \
+  -H "Authorization: Token YOUR_TOKEN"
+
+Create a service instance:
+curl -X POST https://netbox.example.com/api/plugins/nso-services/instances/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "service": 1,
+    "name": "customer-vpn-001",
+    "status": "active",
+    "region": 2,
+    "json_body": {"customer_id": "12345"}
+  }'
+
+Get device with NSO service instances:
+curl -X GET https://netbox.example.com/api/dcim/devices/1/ \
+  -H "Authorization: Token YOUR_TOKEN"
+
+
+Best Practices:
+
+1. Service Organization:
+   - Create one NSO Service per service package type
+   - Use clear, consistent naming conventions
+   - Keep Git repository URLs up to date
+
+2. Instance Management:
+   - Use descriptive instance names that identify the customer/purpose
+   - Leverage device roles for template-based assignments
+   - Store all variable data in the JSON Body field
+
+3. Status Management:
+   - Use "Planned" status during service design
+   - Move to "Active" when deployed to production
+   - Use "Decommissioning" before final removal
+   - Archive with "Retired" status for historical tracking
+
+4. API Integration:
+   - Use the extended Device API to retrieve service instances
+   - Implement proper error handling for API calls
+   - Cache frequently accessed service data
+   - Use filtering parameters to reduce response sizes

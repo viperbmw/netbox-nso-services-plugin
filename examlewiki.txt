@@ -1,0 +1,96 @@
+Stakeholders
+Objectives
+Useful Links
+High Level Design
+Low Level Design
+NNI Database Structure
+NNI in Netbox - Required Fields
+NNI Naming
+NNI Types
+NNI Roles
+NNI Device/Interface
+Stakeholders
+RACI - Responsible, Accountable, Consulted, Informed
+Name
+Role
+Notes
+Todd, Nathaniel 
+RA	
+TaskGID-97649 - Netbox - Define NNI Structure RESOLVED  
+
+Fouraki, Ioanna 
+R	
+TaskGID-93138 - Model Kasat Distributors in Netbox - physical NNI import CLOSED  
+
+Singh, Sandeep 
+R	
+Action ItemGID-98446 - Netbox - APAC Document IP Transit/AWS/GCP/PtP NNI and Circuits CLOSED  
+
+Mulyalin, Denis 
+R	
+Action ItemGID-100168 - Netbox - Update NNI Type choices CLOSED  
+
+TNS Team	I	
+
+Objectives
+Why - To document NNI TNS Team has to operate across the network
+How - Use Netbox VNO custom plugin NNI documentation capability    
+What - Make Netbox to become a source of truth for NNI
+
+Useful Links
+Recording of KT - 09-24-2024 - NNI in Netbox
+
+
+
+High Level Design
+NNI - Network to Network Interface, a peering or interconnect between two networks.
+To document NNI need to create custom database tables and UI views, in other words use custom plugin. VNO custom plugin for Netbox was developed with NNI in mind and has capabilities to capture NNI information - NUC - Netbox VNO Modeling
+Low Level Design
+NNI Database Structure
+
+Source - NUC - Netbox VNO Modeling
+NNI in Netbox - Required Fields
+Field
+Data/Description
+Name	See section below to describe naming convention for NNI's
+Parent	This is the geography an NNI subtends. See section below for naming where geographies are described in more detail.
+Slug	Normalized Netbox readable version of the name field above.
+Description	Identifies the connected vendor/partner, their circuit ID, NNI usage, etc.
+Status	Current status of the NNI. On initial data entry, most/all our NNI's are a status of "active", but future installs can be "planned" or "staging", whereas NNI's turned down can be moved to "decommissioning" or "retired"
+NNI Type	See NNI Types section below for more details on this field
+Role	See NNI Roles section below for more details on this field
+Site	The Viasat defined site ID for where this NNI terminates to our service provider edge.
+Tenant	The primary tenant which this NNI services. Some NNI's may have 
+Device	The physical device the NNI connection is made on. This field is not able to be imported from a GIT file, and must be added after the upload should that be the method of entry.
+Interface	The physical interface on the device above the NNI connection is made on. This field is not able to be imported from a GIT file, and must be added after the upload should that be the method of entry.
+NNI Naming
+NNI naming will be grouped in to geographical boundaries per public facing autonomous systems. This means all NNI's in North America (NA) will be grouped under one numerical sequence, but in Australia, we have the Global Transport Backbone (GTB), AU Mobility, as well as NBN that all are different numerical sequences. The naming structure will be "NNI-" followed by the geographical value from the chart below (2 digits starting at 01, allowing for up to 99 different values), and finally the unique value for each connection (3 digits starting at 001, allowing for up to 999 values per geographical boundary).
+NNI-<geography><connection>
+Name/Numbering
+Description
+North America GTB - 01	NNI connecting to the GTB in NA
+Europe, Middle East, and Africa GTB - 02	NNI connecting to the GTB in EMEA
+Asia Pacific GTB - 03	NNI connecting to the GTB in APAC
+Australia Mobility - 04	NNI connecting to AU Mobility
+Australia NBN - 05	NNI connecting to AU NBN
+Brazil - 06	NNI connecting to Brazil
+NNI Types
+Name
+Description
+Name
+Description
+Partner NNI	All NNI's between Viasat and another singular entity not explicitly used for the INTERNET vrf, where sub-interfaces may exist for a variety of different functions. Examples include GSD, Inmarsat, BizAV, etc
+Private NNI	All NNI's between Viasat and another singular entity for use in the INTERNET vrf, such as ISP/content provider like Fastly and Amazon in NAC01
+IP Transit	A non-tagged link whos sole purpose is IPv4/IPv6 internet transit peering
+IXP	A tagged or untagged link whos sole purpose is IPv4/IPv6 peering in to a public internet exchange
+Public Cloud	A NNI for direct connection in to a public cloud such as AWS, GCP, Azure, etc
+Cache Peering	A NNI to a directly connect content cache
+NNI Roles
+Name
+Description
+Active	This is the preferred NNI role, as we want the NNI "role" function to be controlled by the connecting customer/environment as much as possible. 
+Primary	In the event the Viasat Service Provider network is controlling the role, this marks an NNI as normally "primary" in the redundancy schema.
+Secondary	In the event the Viasat Service Provider network is controlling the role, this marks an NNI as normally "secondary" in the redundancy schema.
+Tertiary	In the event the Viasat Service Provider network is controlling the role, this marks an NNI as normally "tertiary" in the redundancy schema.
+NNI Device/Interface
+In Netbox, the NNI device and interface linked will be that of the first physical landing of the connection to the Viasat service provider network. Example would be a 1Gig physical connection to IAPS01-CHI.NAC01 that has a vlan trunked to INAR01-CHI.NAC01 where the routing lands. The NNI device and interface would be that of the IAPS01-CHI.NAC01 connection.
